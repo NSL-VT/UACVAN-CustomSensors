@@ -1,11 +1,11 @@
 /**
  * In trying to modify this code, most of the modifications that need to be made should be made in the MX_falling code. This code is where the falling edge of th e
- * PWM signal is captured and is where the necessary messages get published. 
+ * PWM signal is captured and is where the necessary messages get published.
 */
 #include "uavcan.h"
 
 /* Calibration Mode */
-#define CALIBRATION	true
+#define CALIBRATION false
 
 /* Define the pin numbers */
 #define ALPHA_PIN 2
@@ -20,7 +20,6 @@ volatile uint32_t alpha_PWM = 0, beta_PWM = 0;
 uint32_t alpha_prev_time, beta_prev_time; // shouldn't this be volatile as well?
 
 /* Set up CAN node */
-static constexpr uint32_t NODE_ID = 2;
 static constexpr uint8_t SW_VER = 1;
 static constexpr uint8_t HW_VER = 1;
 static const char* NODE_NAME = "ADU";
@@ -40,34 +39,47 @@ uavcan::equipment::air_data::Sideslip beta_msg;
 //
 
 // Calibration for ADU-200 on 07/30/2024
-/* float b_alpha = 3.0723432;
+/*
+static constexpr uint32_t NODE_ID = 20;
+float b_alpha = 3.0723432;
 float b_beta  = -3.23126372;
 float m_alpha = -0.0014945726;
-float m_beta  = 0.00153231; */
+float m_beta  = 0.00153231;
+*/
 
 // Calibration for ADU-201 on 07/30/2024
+static constexpr uint32_t NODE_ID = 21;
 float b_alpha = 3.47091511;
 float b_beta  = -3.25409781;
 float m_alpha = -0.00155833;
 float m_beta  = 0.00151306;
-//
+
 // Calibration for ADU-202 on 07/30/2024
-/* float b_alpha = 3.08397362;
+/*
+static constexpr uint32_t NODE_ID = 22;
+float b_alpha = 3.08397362;
 float b_beta  = -2.90423762;
 float m_alpha = -0.00147747;
-float m_beta  = 0.00148731; */
+float m_beta  = 0.00148731;
+*/
 
 // Calibration for ADU-203 on 07/30/2024
-/* float b_alpha = 3.19263333;
+/*
+static constexpr uint32_t NODE_ID = 23;
+float b_alpha = 3.19263333;
 float b_beta  = -3.18490733;
 float m_alpha = -0.00156451;
-float m_beta  = 0.00151182; */
+float m_beta  = 0.00151182;
+*/
 
 // Calibration for ADU-204 on 07/30/2024
-/* float b_alpha = 3.47091511;
+/*
+static constexpr uint32_t NODE_ID = 24;
+float b_alpha = 3.47091511;
 float b_beta  = -2.76039883;
 float m_alpha = -0.00155833;
-float m_beta  = 0.00157377; */
+float m_beta  = 0.00157377;
+*/
 
 /**
  * @section Interrupt functions for alpha and beta vanes
@@ -162,13 +174,13 @@ void setup() {
 
 	/* CAN acceptance filters */
 	uavcan::configureCanAcceptanceFilters(*node);
-	
+
 	/* Set the PWM interrupt pins and attach the interrupts */
 	pinMode(ALPHA_PIN, INPUT);
 	pinMode(BETA_PIN, INPUT);
 	attachInterrupt(ALPHA_PIN, alpha_rising, RISING);
 	attachInterrupt(BETA_PIN, beta_rising, RISING);
-	
+
 	/* Set CAN node mode to operational */
 	node->setModeOperational();
 	Serial.println("Setup complete");
@@ -198,7 +210,7 @@ void setup() {
 			delay(1000);
 		}
 	#endif
-	
+
 }
 
 void loop() {
