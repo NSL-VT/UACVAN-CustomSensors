@@ -38,21 +38,21 @@ uavcan::equipment::air_data::Sideslip beta_msg;
  */
 //
 
-// Calibration for ADU-200 on 07/30/2024
-/*
-static constexpr uint32_t NODE_ID = 20;
+// Calibration for NSLADU-1 on 07/30/2024
+static constexpr uint32_t NODE_ID = 1;
 float b_alpha = 3.0723432;
 float b_beta  = -3.23126372;
 float m_alpha = -0.0014945726;
 float m_beta  = 0.00153231;
-*/
 
-// Calibration for ADU-201 on 07/30/2024
-static constexpr uint32_t NODE_ID = 21;
+// Calibration for NSLADU-2 on 07/30/2024
+/*
+static constexpr uint32_t NODE_ID = 2;
 float b_alpha = 3.47091511;
 float b_beta  = -3.25409781;
 float m_alpha = -0.00155833;
 float m_beta  = 0.00151306;
+*/
 
 // Calibration for ADU-202 on 07/30/2024
 /*
@@ -86,46 +86,42 @@ float m_beta  = 0.00157377;
  * @link https://www.benripley.com/diy/arduino/three-ways-to-read-a-pwm-signal-with-arduino/
  */
 void alpha_rising() {
-	attachInterrupt(ALPHA_PIN, alpha_falling, FALLING);
 	alpha_prev_time = micros();
+	attachInterrupt(ALPHA_PIN, alpha_falling, FALLING);
 }
 void beta_rising() {
-	attachInterrupt(BETA_PIN, beta_falling, FALLING);
 	beta_prev_time = micros();
+	attachInterrupt(BETA_PIN, beta_falling, FALLING);
 }
 void alpha_falling() {
-	attachInterrupt(ALPHA_PIN, alpha_rising, RISING);
+	/* PWM value in microseconds */
 	alpha_PWM = micros()-alpha_prev_time;
 
 	/* Assign value to the message */
 	alpha_msg.aoa = m_alpha*alpha_PWM + b_alpha;
 
+	/* Publish and check for errors */
 	if (alpha_pub->broadcast(alpha_msg) < 0) {
 		Serial.println("WARNING: Issue publishing AngleOfAttack message");
-	} else {
-		// Debugging only
-		/* Serial.print("a,");
-		Serial.print(alpha_PWM);
-		Serial.print(",");
-		Serial.println(micros()); */
 	}
+
+	/* Re-attach interrupt to look for a rising signal */
+	attachInterrupt(ALPHA_PIN, alpha_rising, RISING);
 }
 void beta_falling() {
-	attachInterrupt(BETA_PIN, beta_rising, RISING);
+	/* PWM value in microseconds */
 	beta_PWM = micros()-beta_prev_time;
 
 	/* Assign value to the message */
 	beta_msg.sideslip_angle = m_beta*beta_PWM + b_beta;
 
+	/* Publish and check for errors */
 	if (beta_pub->broadcast(beta_msg) < 0) {
 		Serial.println("WARNING: Issue publishing Sideslip message");
-	} else {
-		// Debugging only
-		/* Serial.print("b,");
-		Serial.print(beta_PWM);
-		Serial.print(",");
-		Serial.println(micros()); */
 	}
+
+	/* Re-attach interrupt to look for a rising signal */
+	attachInterrupt(BETA_PIN, beta_rising, RISING);
 }
 
 
@@ -213,8 +209,5 @@ void setup() {
 
 }
 
-void loop() {
-	/* delay for stability */
-	delay(2); // Is there a better way to do this?
-}
+void loop() {}
 
